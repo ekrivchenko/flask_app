@@ -1,31 +1,35 @@
-from flask import Flask
-from flask.ext.mysql import MySQL
-from flask_restful import Resource, Api
 import json
-import uuid
 from flask_restful import Resource, Api, reqparse
 from sqlalchemy import create_engine
 from flask import Flask, render_template, Response
+import queries
 
-app = Flask(__name__)
-api = Api(app)
-mysql = MySQL()
-
-app.config['MYSQL_DATABASE_USER'] = 'barmaley'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'barmaley'
-app.config['MYSQL_DATABASE_DB'] = 'test_db'
-app.config['MYSQL_DATABASE_HOST'] = 'testdb.chvxt94wiqg2.us-east-1.rds.amazonaws.com'
-mysql.init_app(app)
-
-conn = mysql.connect()
-cursor = conn.cursor()
+application = Flask(__name__)
+api = Api(application)
+application.debug = True
 
 
-class HelloWorld(Resource):
+DB_STRING = 'mysql+pymysql://%s:%s@%s:%s/%s' % ('barmaley', 'barmaley', 'testdb.chvxt94wiqg2.us-east-1.rds.amazonaws.com', 3306, 'test_db')
+engine = create_engine(DB_STRING, pool_recycle=3600)
+conn = engine.connect()
+
+
+@application.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+
+class Users(Resource):
     def get(self):
-        return {'hello': 'world'}
+        conn = engine.connect()
+        users = dict()
+        users['users'] = list()
+        r = conn.execute(queries.QUERY_SELECT_ALL_USERS).cursor.fetchall()
 
-api.add_resource(HelloWorld, '/')
+        return users, 200
+
+
+api.add_resource(Users, '/api/v1/users')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    application.run(host='0.0.0.0')
