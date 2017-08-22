@@ -1,1 +1,2 @@
 QUERY_SELECT_ALL_USERS = 'SELECT * FROM users'
+QUERY_INSERT_USER = 'INSERT INTO users VALUES ("{0}", "{1}", "{2}", "{3}")'
