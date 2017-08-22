@@ -9,9 +9,8 @@ api = Api(application)
 application.debug = True
 
 
-DB_STRING = 'mysql+pymysql://%s:%s@%s:%s/%s' % ('barmaley', 'barmaley', 'testdb.chvxt94wiqg2.us-east-1.rds.amazonaws.com', 3306, 'test_db')
+DB_STRING = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}'.format('barmaley', 'barmaley', 'testdb.chvxt94wiqg2.us-east-1.rds.amazonaws.com', 3306, 'test_db')
 engine = create_engine(DB_STRING, pool_recycle=3600)
-conn = engine.connect()
 
 
 @application.route('/', methods=['GET'])
@@ -25,11 +24,15 @@ class Users(Resource):
         users = dict()
         users['users'] = list()
         r = conn.execute(queries.QUERY_SELECT_ALL_USERS).cursor.fetchall()
-
+        for user in r:
+            users['users'].append({'uuid': user[0],
+                                   'first_name': user[1],
+                                   'last_name': user[2],
+                                   'email': user[3]})
         return users, 200
 
 
 api.add_resource(Users, '/api/v1/users')
 
 if __name__ == '__main__':
-    application.run(host='0.0.0.0')
+    application.run()
